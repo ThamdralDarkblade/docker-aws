@@ -1,0 +1,34 @@
+version: '3'
+services:
+  api:
+    build: ./api
+    command: npm start
+    environment:
+      - PORT=3333
+      - HOST=localhost
+      - MONGO_URL=mongodb://api_db:27017/api
+    depends_on:
+      - api_db
+  api_db:
+    image: mongo:latest
+    volumes:
+      - mongodb_api:/data/db
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile.prod
+    command: serve -s build -l 3334
+    depends_on:
+      - api
+  nginx:
+    image: nginx:stable-alpine3.17
+    container_name: websystem-docker-demo-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/nginx.conf
+    depends_on:
+      - frontend
+      - api
+volumes:
+  mongodb_api:
